@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "AlphaPulse",
+    "slug": "alphapulse",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "alphapulse",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alphapulse.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0D111C",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.alphapulse.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-notifications"
+    ]
+  }
+}
