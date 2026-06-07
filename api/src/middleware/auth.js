@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'alphapulse_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecretpulse';
 
-module.exports = (req, res, next) => {
+const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).json({ error: 'No token provided' });
+    return res.status(401).json({ message: 'No token provided' });
   }
 
   const token = authHeader.split(' ')[1];
@@ -13,6 +13,10 @@ module.exports = (req, res, next) => {
     req.userId = decoded.userId;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ message: 'Invalid token' });
   }
+};
+
+module.exports = {
+  authMiddleware
 };
