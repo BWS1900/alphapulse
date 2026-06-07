@@ -1,8 +1,9 @@
 const axios = require('axios');
 const NodeCache = require('node-cache');
+const logger = require('../logger');
 
 // Cache market data for 1 minute (60 seconds)
-const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
+const cache = new NodeCache({ stdTTL: 60, checkperiod: 30 });
 
 const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3';
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
@@ -36,7 +37,7 @@ class MarketService {
       }
       return null;
     } catch (error) {
-      console.error(`Error fetching crypto price for ${id}:`, error.message);
+      logger.error('Error fetching crypto price', { id, error: error.message });
       return null;
     }
   }
@@ -48,7 +49,7 @@ class MarketService {
 
     if (!this.finnhubKey) {
       // If no key, return mock data or fallback
-      console.warn('FINNHUB_API_KEY not set. Using mock data for stocks.');
+      logger.warn('FINNHUB_API_KEY not set. Using mock data for stocks.');
       const data = { price: Math.random() * 200 + 50, change24h: (Math.random() - 0.5) * 5 };
       cache.set(cacheKey, data);
       return data;
@@ -72,7 +73,7 @@ class MarketService {
       }
       return null;
     } catch (error) {
-      console.error(`Error fetching stock price for ${symbol}:`, error.message);
+      logger.error('Error fetching stock price', { symbol, error: error.message });
       return null;
     }
   }
@@ -98,7 +99,7 @@ class MarketService {
           cache.set(`crypto_${id}`, data);
         });
       } catch (error) {
-        console.error(`Error fetching crypto prices for ${idsToFetch.join(',')}:`, error.message);
+        logger.error('Error fetching crypto prices', { symbols: idsToFetch.join(','), error: error.message });
         // Fallback to random data for demo if API fails
         idsToFetch.forEach(id => {
           const fallbackData = { price: Math.random() * 50000 + 1000, change24h: (Math.random() - 0.5) * 10 };
@@ -159,7 +160,7 @@ class MarketService {
         });
         history = response.data.prices.map(p => ({ timestamp: p[0], price: p[1] }));
       } catch (error) {
-        console.error(`Error fetching crypto history for ${symbol}:`, error.message);
+        logger.error('Error fetching crypto history', { symbol, error: error.message });
         // Mock fallback
         history = this.generateMockHistory(range);
       }

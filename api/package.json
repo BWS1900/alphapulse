@@ -1,9 +1,10 @@
 {
   "name": "api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "AlphaPulse API Gateway",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -18,9 +19,8 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
-    "node-cron": "^4.2.1",
-    "socket.io": "^4.8.3",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^6.0.1"
+    "node-cache": "^5.1.2",
+    "sqlite3": "^6.0.1",
+    "uuid": "^11.1.0"
   }
 }

@@ -4,10 +4,25 @@ const { v4: uuidv4 } = require('uuid');
 const { db } = require('../database');
 const { authMiddleware } = require('../middleware/auth');
 
+const VALID_ALERT_TYPES = ['price_above', 'price_below', 'percent_change', 'news_sentiment'];
+const SYMBOL_REGEX = /^[a-zA-Z0-9]{1,10}$/;
+
+function validateSymbol(symbol) {
+  return typeof symbol === 'string' && SYMBOL_REGEX.test(symbol);
+}
+
+function validateAlertType(type) {
+  return VALID_ALERT_TYPES.includes(type);
+}
+
+function validateValue(value) {
+  return typeof value === 'number' && isFinite(value) && value >= -1e10 && value <= 1e10;
+}
+
 // Get alerts
 router.get('/', authMiddleware, (req, res) => {
   db.all('SELECT * FROM alerts WHERE user_id = ?', [req.userId], (err, alerts) => {
-    if (err) return res.status(500).json({ message: 'Database error' });
+    if (err) return res.status(500).json({ message: 'Server error' });
     res.json(alerts.map(a => ({
       id: a.id,
       symbol: a.symbol,
@@ -23,8 +38,21 @@ router.get('/', authMiddleware, (req, res) => {
 // Create alert
 router.post('/', authMiddleware, (req, res) => {
   const { symbol, type, value } = req.body;
+
   if (!symbol || !type || value === undefined) {
     return res.status(400).json({ message: 'Symbol, type, and value are required' });
+  }
+
+  if (!validateSymbol(symbol)) {
+    return res.status(400).json({ message: 'Invalid symbol format (1-10 alphanumeric characters)' });
+  }
+
+  if (!validateAlertType(type)) {
+    return res.status(400).json({ message: `Invalid alert type. Must be one of: ${VALID_ALERT_TYPES.join(', ')}` });
+  }
+
+  if (!validateValue(value)) {
+    return res.status(400).json({ message: 'Invalid value (must be a finite number)' });
   }
 
   const id = uuidv4();
@@ -34,8 +62,16 @@ router.post('/', authMiddleware, (req, res) => {
     'INSERT INTO alerts (id, user_id, symbol, type, value, created_at) VALUES (?, ?, ?, ?, ?, ?)',
     [id, req.userId, symbol.toLowerCase(), type, value, createdAt],
     function(err) {
-      if (err) return res.status(500).json({ message: 'Database error' });
-      res.status(201).json({ id, symbol, type, value, enabled: true, triggered: false, createdAt });
+      if (err) return res.status(500).json({ message: 'Failed to create alert' });
+      res.status(201).json({
+        id,
+        symbol: symbol.toLowerCase(),
+        type,
+        value,
+        enabled: true,
+        triggered: false,
+        createdAt
+      });
     }
   );
 });
@@ -46,6 +82,14 @@ router.patch('/:id', authMiddleware, (req, res) => {
   
   if (enabled === undefined && value === undefined && type === undefined) {
     return res.status(400).json({ message: 'At least one field (enabled, value, type) must be provided' });
+  }
+
+  if (value !== undefined && !validateValue(value)) {
+    return res.status(400).json({ message: 'Invalid value (must be a finite number)' });
+  }
+
+  if (type !== undefined && !validateAlertType(type)) {
+    return res.status(400).json({ message: `Invalid alert type. Must be one of: ${VALID_ALERT_TYPES.join(', ')}` });
   }
 
   let query = 'UPDATE alerts SET ';
@@ -63,21 +107,33 @@ router.patch('/:id', authMiddleware, (req, res) => {
     params.push(type);
   }
   
-  query = query.slice(0, -2); // Remove last comma
+  query = query.slice(0, -2);
   query += ' WHERE id = ? AND user_id = ?';
   params.push(req.params.id, req.userId);
 
   db.run(query, params, function(err) {
-    if (err) return res.status(500).json({ message: 'Database error' });
+    if (err) return res.status(500).json({ message: 'Server error' });
     if (this.changes === 0) return res.status(404).json({ message: 'Alert not found' });
-    res.json({ id: req.params.id, ...req.body });
+
+    db.get('SELECT * FROM alerts WHERE id = ? AND user_id = ?', [req.params.id, req.userId], (err, alert) => {
+      if (err || !alert) return res.status(200).json({ id: req.params.id });
+      res.json({
+        id: alert.id,
+        symbol: alert.symbol,
+        type: alert.type,
+        value: alert.value,
+        enabled: !!alert.enabled,
+        triggered: !!alert.triggered,
+        createdAt: alert.created_at
+      });
+    });
   });
 });
 
 // Delete alert
 router.delete('/:id', authMiddleware, (req, res) => {
   db.run('DELETE FROM alerts WHERE id = ? AND user_id = ?', [req.params.id, req.userId], function(err) {
-    if (err) return res.status(500).json({ message: 'Database error' });
+    if (err) return res.status(500).json({ message: 'Server error' });
     if (this.changes === 0) return res.status(404).json({ message: 'Alert not found' });
     res.status(204).send();
   });
