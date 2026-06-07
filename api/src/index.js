@@ -38,10 +38,31 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/watchlists', watchlistRoutes);
 app.use('/api/v1/alerts', alertRoutes);
 
-// --- Market Data (Existing) ---
-app.get('/api/v1/assets', (req, res) => {
-  // Placeholder
-  res.json([]);
+const http = require('http');
+const { Server } = require('socket.io');
+const marketService = require('./services/marketService');
+const marketRoutes = require('./routes/marketdata');
+
+const assetConfig = [
+  { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', type: 'crypto' },
+  { id: 'ethereum', symbol: 'eth', name: 'Ethereum', type: 'crypto' },
+  { id: 'solana', symbol: 'sol', name: 'Solana', type: 'crypto' },
+  { id: 'apple', symbol: 'aapl', name: 'Apple', type: 'stock' },
+  { id: 'google', symbol: 'googl', name: 'Google', type: 'stock' },
+  { id: 'tesla', symbol: 'tsla', name: 'Tesla', type: 'stock' }
+];
+
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
+
+app.use('/api/v1', marketRoutes);
+
+io.on('connection', (socket) => {
+  const interval = setInterval(async () => {
+    const updates = await marketService.getAllAssets(assetConfig);
+    socket.emit('price_update', updates.map(u => ({ symbol: u.symbol, price: u.price })));
+  }, 10000);
+  socket.on('disconnect', () => clearInterval(interval));
 });
 
 // Health Check
@@ -49,6 +70,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`AlphaPulse Gateway running on port ${PORT}`);
 });
