@@ -1,5 +1,5 @@
 // AlphaPulse — Typography Scale
-// System fonts for iOS (SF Pro) and Android (Roboto)
+// Per designer spec: SF Pro Display / Inter + SF Mono / JetBrains Mono
 
 import { Platform } from 'react-native';
 
@@ -20,23 +20,22 @@ export const typography = {
   fontFamilyMono,
 
   fontSize: {
-    xs: 10,
-    sm: 12,
-    base: 14,
-    md: 16,
-    lg: 18,
-    xl: 20,
-    '2xl': 24,
-    '3xl': 30,
-    '4xl': 36,
-    '5xl': 48,
+    xs: 10,     // Tiny labels, metric units
+    sm: 12,     // Secondary info, timestamps
+    base: 14,   // Body text, list items
+    md: 16,     // Card titles, section headers
+    lg: 20,     // Screen titles, big numbers
+    xl: 28,     // Price displays
+    '2xl': 36,  // Hero prices, large metrics
+    display: 48, // Onboarding headlines
   },
 
   fontWeight: {
-    normal: '400' as const,
+    normal: '500' as const,
     medium: '500' as const,
     semibold: '600' as const,
     bold: '700' as const,
+    extrabold: '800' as const,
   },
 
   lineHeight: {
@@ -49,28 +48,27 @@ export const typography = {
   presets: {
     h1: {
       fontFamily,
-      fontSize: 30,
+      fontSize: 28,
       fontWeight: '700',
-      lineHeight: 36,
+      lineHeight: 34,
       letterSpacing: -0.5,
     },
     h2: {
       fontFamily,
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: '700',
-      lineHeight: 30,
-      letterSpacing: -0.3,
+      lineHeight: 26,
     },
     h3: {
       fontFamily,
-      fontSize: 20,
+      fontSize: 16,
       fontWeight: '600',
-      lineHeight: 26,
+      lineHeight: 22,
     },
     body: {
       fontFamily,
       fontSize: 14,
-      fontWeight: '400',
+      fontWeight: '500',
       lineHeight: 21,
     },
     bodyBold: {
@@ -82,7 +80,7 @@ export const typography = {
     caption: {
       fontFamily,
       fontSize: 12,
-      fontWeight: '400',
+      fontWeight: '500',
       lineHeight: 16,
     },
     label: {
@@ -96,7 +94,7 @@ export const typography = {
     mono: {
       fontFamily: fontFamilyMono,
       fontSize: 14,
-      fontWeight: '400',
+      fontWeight: '500',
       lineHeight: 20,
     },
     priceLarge: {
@@ -106,17 +104,24 @@ export const typography = {
       lineHeight: 44,
       letterSpacing: -0.5,
     },
-    changePositive: {
+    priceHero: {
+      fontFamily: fontFamilyMono,
+      fontSize: 28,
+      fontWeight: '700',
+      lineHeight: 36,
+      letterSpacing: -0.5,
+    },
+    changeMono: {
       fontFamily: fontFamilyMono,
       fontSize: 14,
       fontWeight: '600',
       lineHeight: 20,
     },
-    changeNegative: {
-      fontFamily: fontFamilyMono,
-      fontSize: 14,
-      fontWeight: '600',
-      lineHeight: 20,
+    display: {
+      fontFamily,
+      fontSize: 48,
+      fontWeight: '800',
+      lineHeight: 56,
     },
   },
 };
